@@ -14,7 +14,7 @@
   const pd = ref(['wa']);
   const wantToDo = ref(['sup']);
 
-  const selectedMsg = ref('yo')
+  const selectedMsg = ref('')
 
   const hours = ['00:00', '00:30', '01:00', '01:30', '02:00']
 
@@ -23,14 +23,25 @@
     console.log(selectedMsg)
   }
 
+  function receiveKeys(event) {
+    if (event.key === 'q' && event.altKey) {
+      selectedMsg.value = ""
+    }
+    // console.log(event)
+  }
+
+  window.addEventListener("keydown", receiveKeys)
 </script>
 
 <template>
-  <TodoList :myList="daily" @select="(msg) => selectedMsg = msg"/>
-  <TodoList :myList="weekly" @select="(msg) => selectedMsg = msg"/>
-  <TodoList :myList="mustDo" @select="(msg) => selectedMsg = msg"/>
-  <TodoList :myList="pd" @select="(msg) => selectedMsg = msg"/>
-  <TodoList :myList="wantToDo" @select="(msg) => selectedMsg = msg"/>
+  <!-- <input type="text" @keydown="removeItem"> -->
+  <div class="todo-lists">  
+    <TodoList title="Daily" :myList="daily" @select="(msg) => selectedMsg = msg"/>
+    <TodoList title="Weekly" :myList="weekly" @select="(msg) => selectedMsg = msg"/>
+    <TodoList title="Must Do" :myList="mustDo" @select="(msg) => selectedMsg = msg"/>
+    <TodoList title="PD" :myList="pd" @select="(msg) => selectedMsg = msg"/>
+    <TodoList title="Want to do" :myList="wantToDo" @select="(msg) => selectedMsg = msg"/>
+  </div>
   <table>
       <thead>
         <tr>
@@ -46,4 +57,12 @@
         </tr>
       </tbody>
     </table>
+    <h1>Current Input is {{ selectedMsg }}</h1>
 </template>
+
+<style>
+  .todo-lists {
+    display: flex;
+    flex-direction: row;
+  }
+</style>
