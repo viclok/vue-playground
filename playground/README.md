@@ -28,10 +28,16 @@ pnpm dev
 pnpm build
 ```
 
+Done
+1. Have 5 todolists
+2. Have timetable
+3. Be able to copy list items to timetable
+4. CRUD for list items
+
 Current Worklog:
 1. Connect to database
-2. Fill out all the hours I want
-3. Style the page
+2. Style the page
+3. edit textbox with typing (deactivate edit mode from the todolist component)
 
 
 Optional
