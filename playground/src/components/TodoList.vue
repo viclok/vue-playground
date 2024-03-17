@@ -1,24 +1,27 @@
 <script setup>
   import { ref } from "vue"
   // import { useCollection } from 'vuefire';
-  // import { db, todolistRef } from './firebase';
-  // import { updateDoc, doc } from 'firebase/firestore';
+  import { todolistRef } from '../firebase';
+  import { updateDoc, doc } from 'firebase/firestore';
 
   const props = defineProps({
   myList: Array,
+  header: String,
   title: String
     })
-    const emit = defineEmits(['select'])
+
+  const emit = defineEmits(['select', 'update'])
   
-    function selectItem(item) {
-      emit('select', item)
-    }
+  function selectItem(item) {
+    emit('select', item)
+  }
   
   function addItem(event) {
-    console.log(event)
+    // console.log(event)
     props.myList.push(newItem.value)
     toggleAdd()
     newItem.value = ""
+    emit('update', props.header, props.myList)
   }
 
   function deleteItem(item) {
@@ -27,6 +30,7 @@
       props.myList.splice(index,1)
     }
     resetEdit()
+    emit('update', props.header, props.myList)
   }
 
   function editItem(item) {
@@ -35,6 +39,7 @@
       props.myList[index] = editingItem.value
     }
     resetEdit()
+    emit('update', props.header, props.myList)
   }
 
   function resetEdit() {

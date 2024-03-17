@@ -1,25 +1,50 @@
 <script setup>
-  import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
   import TodoList from './components/TodoList.vue'
-  import { useCollection } from 'vuefire';
   import { db, todolistRef } from './firebase';
-  import { addDoc, updateDoc, doc } from 'firebase/firestore';
+  import { addDoc, updateDoc, doc , onSnapshot, collection} from 'firebase/firestore';
 
-  const documents = useCollection(todolistRef)
-  console.log(documents.value[0])
+  // const documents = useCollection(todolistRef)
+  // console.log(documents.value[0])
 
-  // const daily = ref([
-  // 'Hamburger',
-  // 'Pizza',
-  // 'Spaghetti',
-  // 'Tacos',
-  // 'Teriyaki Chicken',
-  // ]);
-  const daily = ref(documents.value[0]["daily"])
-  const weekly = ref(['hi']);
-  const mustDo = ref(['yo']);
-  const pd = ref(['wa']);
-  const wantToDo = ref(['sup']);
+  onMounted(() => {
+    onSnapshot(collection(db, 'todolist'), (querySnapshot) => {
+      const dailyDB = []
+      const weeklyDB = []
+      const mustDoDB = []
+      const pdDB = []
+      const wantDB = []
+      querySnapshot.forEach((doc) => {
+        const myItem = {
+          id: doc.id,
+          daily: doc.data().daily,
+          weekly: doc.data().weekly,
+          mustDo: doc.data().mustdo,
+          pd: doc.data().pd,
+          wanttodo: doc.data().wanttodo,
+          schedule: doc.data().schedule
+        }
+        console.log(myItem.weekly)
+        myItem.daily.forEach((item) => dailyDB.push(item))
+        myItem.weekly.forEach((item) => weeklyDB.push(item))
+        myItem.mustDo.forEach((item) => mustDoDB.push(item))
+        myItem.pd.forEach((item) => pdDB.push(item))
+        myItem.wanttodo.forEach((item) => wantDB.push(item))
+
+      })
+      daily.value = dailyDB
+      weekly.value = weeklyDB
+      mustDo.value = mustDoDB
+      pd.value = pdDB
+      wantToDo.value = wantDB
+    })
+  })
+
+  const daily = ref();
+  const weekly = ref();
+  const mustDo = ref();
+  const pd = ref();
+  const wantToDo = ref();
 
   const selectedMsg = ref('')
   const editMode = ref(false)
@@ -42,7 +67,7 @@
     if (event.key === 'Enter') {
       editMode.value = false
     }
-    console.log(event)
+    // console.log(event)
     // console.log(event)
   }
 
@@ -80,6 +105,14 @@
     await updateDoc(docRef, newDocument);
   }
 
+  function updateDB(header, updatedList, myList) {
+    console.log(myList)
+    myList = updatedList
+    updateDoc(doc(db, 'todolist', "week1"), {
+      [header]: updatedList
+    })
+  }
+
   // async function createDocument() {
   //   const newDocument = { Array: myArray};
   //   await addDoc
@@ -94,11 +127,11 @@
 <template>
   <!-- <input type="text" @keydown="removeItem"> -->
   <div class="todo-lists">  
-    <TodoList title="Daily" :myList="daily" @select="(msg) => selectedMsg = msg"/>
-    <TodoList title="Weekly" :myList="weekly" @select="(msg) => selectedMsg = msg"/>
-    <TodoList title="Must Do" :myList="mustDo" @select="(msg) => selectedMsg = msg"/>
-    <TodoList title="PD" :myList="pd" @select="(msg) => selectedMsg = msg"/>
-    <TodoList title="Want to do" :myList="wantToDo" @select="(msg) => selectedMsg = msg"/>
+    <TodoList title="Daily" header="daily" :myList="daily" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, daily)"/>
+    <TodoList title="Weekly" header="weekly" :myList="weekly" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, weekly)"/>
+    <TodoList title="Must Do" header="mustdo" :myList="mustDo" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, mustDo)"/>
+    <TodoList title="PD" header="pd" :myList="pd" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, pd)"/>
+    <TodoList title="Want to do" header="wanttodo" :myList="wantToDo" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, wantToDo)"/>
   </div>
   <table>
       <thead>
