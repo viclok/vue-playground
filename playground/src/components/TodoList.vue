@@ -1,5 +1,8 @@
 <script setup>
   import { ref } from "vue"
+  // import { useCollection } from 'vuefire';
+  // import { db, todolistRef } from './firebase';
+  // import { updateDoc, doc } from 'firebase/firestore';
 
   const props = defineProps({
   myList: Array,

@@ -1,20 +1,28 @@
 <script setup>
   import { ref } from 'vue'
   import TodoList from './components/TodoList.vue'
-  
-  const daily = ref([
-  'Hamburger',
-  'Pizza',
-  'Spaghetti',
-  'Tacos',
-  'Teriyaki Chicken',
-  ]);
+  import { useCollection } from 'vuefire';
+  import { db, todolistRef } from './firebase';
+  import { addDoc, updateDoc, doc } from 'firebase/firestore';
+
+  const documents = useCollection(todolistRef)
+  console.log(documents.value[0])
+
+  // const daily = ref([
+  // 'Hamburger',
+  // 'Pizza',
+  // 'Spaghetti',
+  // 'Tacos',
+  // 'Teriyaki Chicken',
+  // ]);
+  const daily = ref(documents.value[0]["daily"])
   const weekly = ref(['hi']);
   const mustDo = ref(['yo']);
   const pd = ref(['wa']);
   const wantToDo = ref(['sup']);
 
   const selectedMsg = ref('')
+  const editMode = ref(false)
 
   // const hours = ['00:00', '00:30', '01:00', '01:30', '02:00']
 
@@ -27,6 +35,14 @@
     if (event.key === 'q' && event.altKey) {
       selectedMsg.value = ""
     }
+    if (event.key === 'w' && event.altKey) {
+      editMode.value = true
+    }
+
+    if (event.key === 'Enter') {
+      editMode.value = false
+    }
+    console.log(event)
     // console.log(event)
   }
 
@@ -57,6 +73,18 @@
     return timeArray
   }
 
+  async function createDocument() {
+    const newDocument = { schedule: myArray};
+    const docRef = doc(db, "todolist", "week1")
+
+    await updateDoc(docRef, newDocument);
+  }
+
+  // async function createDocument() {
+  //   const newDocument = { Array: myArray};
+  //   await addDoc
+  // }
+
   const hours = generateHours(9, 27)
   const headers = ['Time', 'Adjust', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -82,7 +110,7 @@
       <tbody>
         <tr v-for="(hour, index) in hours" :key="index">
           <td>{{ hour }}</td>
-          <td v-for="i in 8" @click="updateItem"></td>
+          <td v-for="i in 8" @click="updateItem"><input v-if="editMode" type="text">{{ index + ", " + i  }}</td>
         </tr>
       </tbody>
     </table>
