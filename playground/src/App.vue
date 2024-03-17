@@ -14,6 +14,7 @@
       const mustDoDB = []
       const pdDB = []
       const wantDB = []
+      const scheduleDB = []
       querySnapshot.forEach((doc) => {
         const myItem = {
           id: doc.id,
@@ -24,19 +25,19 @@
           wanttodo: doc.data().wanttodo,
           schedule: doc.data().schedule
         }
-        console.log(myItem.weekly)
         myItem.daily.forEach((item) => dailyDB.push(item))
         myItem.weekly.forEach((item) => weeklyDB.push(item))
         myItem.mustDo.forEach((item) => mustDoDB.push(item))
         myItem.pd.forEach((item) => pdDB.push(item))
         myItem.wanttodo.forEach((item) => wantDB.push(item))
-
+        myItem.schedule.forEach((item) => scheduleDB.push(item))
       })
       daily.value = dailyDB
       weekly.value = weeklyDB
       mustDo.value = mustDoDB
       pd.value = pdDB
       wantToDo.value = wantDB
+      schedule.value = scheduleDB
     })
   })
 
@@ -45,15 +46,43 @@
   const mustDo = ref();
   const pd = ref();
   const wantToDo = ref();
+  const schedule = ref(Array(295).fill(""));
 
   const selectedMsg = ref('')
   const editMode = ref(false)
+  const itemWrite = ref('')
+  const writeIndex = ref(-1)
 
-  // const hours = ['00:00', '00:30', '01:00', '01:30', '02:00']
+  function setEditIndex(index) {
+    writeIndex.value = index
+  }
 
-  function updateItem(event) {
-    event.target.innerHTML = selectedMsg.value
-    console.log(selectedMsg)
+  function updateItem(index) {
+    if (!editMode.value) {
+      schedule.value[index] = selectedMsg.value
+      writeIndex.value = -1
+      updateDoc(doc(db, 'todolist', "week1"), {
+        schedule: schedule.value
+      })
+    } else {
+      itemWrite.value = schedule.value[index]
+      setEditIndex(index)
+    }
+    // event.target.innerHTML = selectedMsg.value
+    // console.log(selectedMsg)
+  }  
+  
+  function typeUpdate(index) {
+    if (editMode.value) {
+      schedule.value[index] = itemWrite.value
+      selectedMsg.value = itemWrite.value
+      writeIndex.value = -1
+      updateDoc(doc(db, 'todolist', "week1"), {
+        schedule: schedule.value
+      })
+    }
+    // event.target.innerHTML = selectedMsg.value
+    // console.log(selectedMsg)
   }
 
   function receiveKeys(event) {
@@ -61,14 +90,12 @@
       selectedMsg.value = ""
     }
     if (event.key === 'w' && event.altKey) {
-      editMode.value = true
+      editMode.value = !editMode.value
     }
 
-    if (event.key === 'Enter') {
-      editMode.value = false
-    }
-    // console.log(event)
-    // console.log(event)
+    // if (event.key === 'Enter') {
+    //   editMode.value = false
+    // }
   }
 
   function generateHours(startHour, endHour) {
@@ -78,12 +105,15 @@
     var time1=  ""
     var time2= ""
     for (let i = startHour; i <= endHour; i++) {
-      if (i >= 12 && i < 24) {
+      if (i > 12 && i < 24) {
         offset = 12
         timeCode = "PM"
-      } else if (i >= 24) {
+      } else if (i > 24) {
         offset = 24
         timeCode = "AM"
+      } else if (i % 12 == 0) {
+        offset = i - 12
+        timeCode = (i / 12) % 2 == 0 ? "AM" : "PM" 
       } else {
         offset = 0
         timeCode = "AM"
@@ -119,13 +149,14 @@
   // }
 
   const hours = generateHours(9, 27)
+
   const headers = ['Time', 'Adjust', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
   window.addEventListener("keydown", receiveKeys)
 </script>
 
 <template>
-  <!-- <input type="text" @keydown="removeItem"> -->
+
   <div class="todo-lists">  
     <TodoList title="Daily" header="daily" :myList="daily" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, daily)"/>
     <TodoList title="Weekly" header="weekly" :myList="weekly" @select="(msg) => selectedMsg = msg" @update="(header, updatedList) => updateDB(header, updatedList, weekly)"/>
@@ -143,7 +174,8 @@
       <tbody>
         <tr v-for="(hour, index) in hours" :key="index">
           <td>{{ hour }}</td>
-          <td v-for="i in 8" @click="updateItem"><input v-if="editMode" type="text">{{ index + ", " + i  }}</td>
+          <td v-for="i in 8" @click="updateItem(index*8 + i - 1)"><input v-if="editMode && writeIndex == index * 8 + i - 1" v-model="itemWrite" type="text" @keyup.enter="typeUpdate(index * 8 + i - 1)">{{ !(editMode && writeIndex == index * 8 + i -1) ? schedule[index * 8 + i - 1] : '' }}</td>
+
         </tr>
       </tbody>
     </table>

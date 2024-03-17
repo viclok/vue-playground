@@ -33,11 +33,12 @@ Done
 2. Have timetable
 3. Be able to copy list items to timetable
 4. CRUD for list items
+5. connect to databvase
+6. edit textbox with typing (deactivate edit mode from the todolist component)
 
 Current Worklog:
-1. Connect to database
 2. Style the page
-3. edit textbox with typing (deactivate edit mode from the todolist component)
+
 
 
 Optional
